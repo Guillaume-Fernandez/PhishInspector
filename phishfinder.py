@@ -242,7 +242,10 @@ def append_file(file,line):
 
 
 def main():
-  os.remove("./map/maps/markers.js.tmp")
+  try:
+    os.remove("./map/maps/markers.js.tmp")
+  except:
+    pass
   append_file("./map/maps/markers.js.tmp", "var markers = [")
   # if the user supplies a list of urls, use that, else connect to phishtank
   if args.inputfile is not None:
