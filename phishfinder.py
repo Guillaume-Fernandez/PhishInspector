@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 from argparse import ArgumentParser
 from colorama import init
 # from clint.textui import progress
-from geoip import geolite2
+from geoip import geolite2 #pip3 install python-geoip-python3
 from shutil import copyfile
 init()
 
@@ -77,7 +77,11 @@ def go_guessing(phish_url):
       return
 
 def go_phishing(phishing_url):
-  print (phishing_url)
+  #IP resolv added
+  resp = requests.get(phishing_url, stream=True)
+  ip = resp.raw._connection.sock.getpeername()
+  ip_to_country(ip[0])
+
   # parts returns an array including the path. Split the paths into a list to then iterate
   # e.g. ParseResult(scheme='https', netloc='example.com', path='/hello/world/foo/bar', params='', query='', fragment='')
   parts = urlparse(phishing_url)
@@ -231,17 +235,22 @@ def append_file(file,line):
 
 # def main():
 #     # copyfile("./map/maps/markers.js.template","./map/maps/markers.js")
+#     os.remove("./map/maps/markers.js.tmp")
 #     append_file("./map/maps/markers.js.tmp", "var markers = [")
-#     ip_to_country('8.8.8.8')
+#     ip_to_country('google.com')
 #     append_file("./map/maps/markers.js.tmp", "];")
 
 
 def main():
+  os.remove("./map/maps/markers.js.tmp")
+  append_file("./map/maps/markers.js.tmp", "var markers = [")
   # if the user supplies a list of urls, use that, else connect to phishtank
   if args.inputfile is not None:
     use_local_file(args.inputfile)
   else:
     use_phishtank()
+  append_file("./map/maps/markers.js.tmp", "];")
+
 
 if __name__ == "__main__":
   main()
