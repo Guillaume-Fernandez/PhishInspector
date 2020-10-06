@@ -78,10 +78,12 @@ def go_guessing(phish_url):
 
 def go_phishing(phishing_url):
   #IP resolv added
-  resp = requests.get(phishing_url, stream=True)
-  ip = resp.raw._connection.sock.getpeername()
-  ip_to_country(ip[0])
-
+  try:
+    resp = requests.get(phishing_url, stream=True)
+    ip = resp.raw._connection.sock.getpeername()
+    ip_to_country(ip[0])
+  except:
+    pass
   # parts returns an array including the path. Split the paths into a list to then iterate
   # e.g. ParseResult(scheme='https', netloc='example.com', path='/hello/world/foo/bar', params='', query='', fragment='')
   parts = urlparse(phishing_url)
