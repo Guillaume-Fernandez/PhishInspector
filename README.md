@@ -1,16 +1,22 @@
 # phishfinder
 
 ## Overview
-The tool will traverse a URL path to find open directories. If found, it will then look for any zip/txt/exe files and download them. The likelihood is these files will contain the phishing source code, victim logs and possibly malware. You can supply a list of urls in a text file, or by default the code will connect to phishtank and parse the latest known phishing urls. 
+This repository is a fork from https://github.com/cybercdh/phishfinder
 
-Additionally, the tool will also attempt to guess the name of the .zip, as commonly this is the same as the current URI folder, e.g.
+Features:
+1. Download last phishtank data
+2. Parse each URL:
+  - Look for directories and files (.zip, .txt, .tar.gz and .tar.xz). Detailed informations at "URL scan".
+  - Download possibly phishing kits and victim logs
+  - Resolve IP to country and create a HTML map (based on https://github.com/asmaloney/Leaflet_Cluster_Example)
+  - Log result to a csv or html file
+3. Generate and compare sha1sum for each files. It is useless to analyse the same phishing kit.
+4. Run phishing kits on Docker and run script to automaticly detect the trap.
 
-    https://example.com/foo/bar.zip
-    https://example.com/foo.zip
-    
+
 ## Usage
-Run the script without any arguments to use the latest URLs from http://data.phishtank.com/data/online-valid.json 
-    
+Run the script without any arguments to use the latest URLs from http://data.phishtank.com/data/online-valid.json
+
     python3 phishfinder.py
 
 Else, you can pass a list of URLs and specify the folder where you'd like to save results
@@ -29,8 +35,5 @@ Else, you can pass a list of URLs and specify the folder where you'd like to sav
 Updates planned include:
 
 * ~~Brute-forcing for files using the directory as the filename~~
-* Brute-forcing of victim log files from common txt file naming conventions
 * Speed up the requests and use threading
-* Get down with the cool katz and re-write this in Go.
 * ~~Resolve issue where a successful guess downloads a file, followed by an Open Directory download~~
-

@@ -1,22 +1,7 @@
 '''
   phishfinder.py
   written by colin hardy
-  https://twitter.com/cybercdh
-
-  description:
-  the tool will traverse a url path to find open diretories
-  if found, it will then look for any zip files and download them
-  the likelihood is, these .zip files will contain the phishing source code
-
-  you can supply a list of urls in a text file, or by default the code 
-  will connect to phishtank and parse the latest known urls. 
-
-  usage:
-  python phishfinder.py
-  python phishfinder.py [--input urls.txt] [--output /some/folder]
-
-  released under MIT licence.
-
+  fork from https://github.com/cybercdh/phishfinder
 '''
 import requests
 import csv
@@ -29,7 +14,9 @@ from urllib.parse import urlparse, urljoin, unquote
 from bs4 import BeautifulSoup
 from argparse import ArgumentParser
 from colorama import init
-from clint.textui import progress
+# from clint.textui import progress
+from geoip import geolite2
+from shutil import copyfile
 init()
 
 parser = ArgumentParser()
@@ -64,9 +51,9 @@ def safe_open_a(path):
 
 def go_guessing(phish_url):
   # append .zip to the current path, and see if it works!
-  guess_url = phish_url[:-1] + ".zip" 
-  
-  if guess_url[-5:] != "/.zip": 
+  guess_url = phish_url[:-1] + ".zip"
+
+  if guess_url[-5:] != "/.zip":
     print("[+]  Guessing: {}".format(guess_url))
 
     try:
@@ -83,25 +70,25 @@ def go_guessing(phish_url):
       # hopefully we're working with a .zip now...
       print(bcolors.OKGREEN + "[!]  Successful guess! Potential kit found at {}".format(guess_url) + bcolors.ENDC)
       download_file(guess_url)
-      return 
+      return
 
     except requests.exceptions.RequestException:
       print("[!]  An error occurred connecting to {}".format(guess_url))
       return
 
 def go_phishing(phishing_url):
+  print (phishing_url)
   # parts returns an array including the path. Split the paths into a list to then iterate
   # e.g. ParseResult(scheme='https', netloc='example.com', path='/hello/world/foo/bar', params='', query='', fragment='')
   parts = urlparse(phishing_url)
   paths = parts.path.split('/')[1:]
-
   # iterate the length of the paths list
   for i in range(0, len(paths)):
 
     # traverse the path
     # phish_url = '{}://{}/{}/'.format(parts.scheme, parts.netloc,'/'.join(paths[:len(paths) - i]).encode('utf-8'))
     phish_url = '{}://{}/{}/'.format(parts.scheme, parts.netloc,'/'.join(paths[:len(paths) - i]))
-    
+
     # guess each path with .zip extension
     go_guessing(phish_url)
 
@@ -110,17 +97,17 @@ def go_phishing(phishing_url):
       r = requests.get(phish_url, allow_redirects=False, timeout=2)
     except requests.exceptions.RequestException:
       print("[!]  An error occurred connecting to {}".format(phish_url))
-      return 
+      return
 
     if not r.ok:
       return
-    
+
     print("[+]  Checking: {}".format(phish_url))
 
     # check if directory listing is enabled
     if "Index of" in r.text:
       print(bcolors.WARNING + "[!]  Directory found at {}".format(phish_url) + bcolors.ENDC)
-      
+
       # log open directories
       with safe_open_a(args.outputDir + "/directories.txt") as f:
         f.write(phish_url + "\n")
@@ -160,13 +147,13 @@ def download_file(download_url):
   global LASTURL
 
   if (LASTURL == download_url):
-    print(bcolors.WARNING + "[!]  Already downloaded {}".format(download_url) + bcolors.ENDC)    
+    print(bcolors.WARNING + "[!]  Already downloaded {}".format(download_url) + bcolors.ENDC)
     return
 
   LASTURL = download_url
 
   # current date and time for logging
-  now = datetime.now() 
+  now = datetime.now()
   date_time = now.strftime("%m%d%Y%H%M%S-")
   filename = date_time + download_url.split('/')[-1]
 
@@ -181,7 +168,7 @@ def download_file(download_url):
       total_length = int(q.headers.get('content-length'))
       sys.stdout.write('[+]  Saving file to {0}{1}{2}...'.format(args.outputDir + "/kits", "/", filename))
       with safe_open_w(args.outputDir + "/kits/" + filename) as kit:
-        for chunk in progress.bar(q.iter_content(chunk_size=1024), expected_size=(total_length/1024) + 1): 
+        for chunk in progress.bar(q.iter_content(chunk_size=1024), expected_size=(total_length/1024) + 1):
           if chunk:
             kit.write(chunk)
             kit.flush()
@@ -198,7 +185,7 @@ def use_phishtank():
   headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36'
   }
-  try:  
+  try:
     r = requests.get(phishtank_url, allow_redirects=True, timeout=5, stream=True, headers=headers)
   except requests.exceptions.RequestException:
     print(bcolors.WARNING + "[!]  An error occurred connecting to phishtank. Please try again." + bcolors.ENDC)
@@ -231,6 +218,24 @@ def use_local_file(f):
       url = url.strip()
       go_phishing(url)
 
+def ip_to_country(ip):
+    match = geolite2.lookup(ip)
+    new_line = str('{"name":"' + str(match.country) + '","city":"' + match.timezone + '","lat":' + str(match.location[0]) + ',"lng":' + str(match.location[1]) + ',},')
+    append_file("./map/maps/markers.js.tmp",new_line)
+    return print (ip,"is located at", match.country, match.timezone)
+
+def append_file(file,line):
+    map_source = open(file,'a')
+    map_source.write(line)
+    map_source.close()
+
+# def main():
+#     # copyfile("./map/maps/markers.js.template","./map/maps/markers.js")
+#     append_file("./map/maps/markers.js.tmp", "var markers = [")
+#     ip_to_country('8.8.8.8')
+#     append_file("./map/maps/markers.js.tmp", "];")
+
+
 def main():
   # if the user supplies a list of urls, use that, else connect to phishtank
   if args.inputfile is not None:
@@ -240,5 +245,3 @@ def main():
 
 if __name__ == "__main__":
   main()
-
-
