@@ -1,0 +1,5 @@
+#!/home/guillaume/Documents/Devleppement/Git-repo/PhishInspector/venv/bin/python3
+from proxy_db.cli import main
+
+if __name__ == "__main__":
+    main()
