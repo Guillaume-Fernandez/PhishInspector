@@ -40,10 +40,11 @@ def main():
             try:
                 new_line=phish.ip_to_country(entry["details"][0]["ip_address"],entry["phish_id"])
                 phish.append_file("./map/maps/markers.js.tmp",new_line)
-            except:
+                phish.copy_file("./map/maps/markers.js.tmp","./map/maps/markers.js")
+                phish.append_file("./map/maps/markers.js","];")
                 failed_ip_country+=1
-            phish.copy_file("./map/maps/markers.js.tmp","./map/maps/markers.js")
-            target_classement.append(entry["target"])
+            except:
+                target_classement.append(entry["target"])
             if phish.check_url(entry["url"]) == "without_interest":
                 # print("This URL look like http://example.com (",entry["url"],"), there is no possibility for files scan.")
                 pass

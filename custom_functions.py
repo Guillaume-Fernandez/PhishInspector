@@ -25,8 +25,8 @@ def web_server():
     # Start the web server
     server_object.serve_forever()
 
-def copy_file(in,out):
-    shutil.copyfileobj(in, out)
+def copy_file(file_in,file_out):
+    shutil.copyfile(file_in, file_out)
 
 
 def finalization(target_c,failed_ip_country):
