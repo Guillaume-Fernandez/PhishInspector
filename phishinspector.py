@@ -16,10 +16,10 @@ def main():
     target_classement = list()
     failed_ip_country = 0
     try:
-        os.remove("./map/maps/markers.js.tmp")
+        os.remove("./map/maps/markers.js")
     except:
-        open("./map/maps/markers.js.tmp", "w")
-    phish.append_file("./map/maps/markers.js.tmp", "var markers = [")
+        open("./map/maps/markers.js", "w")
+    phish.append_file("./map/maps/markers.js", "var markers = [")
 
     #Import URL source file or download it from phishtank
     if args.inputfile is not None:
@@ -37,7 +37,7 @@ def main():
             # append_country_map(entry["details"][0]["country"])
             try:
                 new_line=phish.ip_to_country(entry["details"][0]["ip_address"],entry["phish_id"])
-                phish.append_file("./map/maps/markers.js.tmp",new_line)
+                phish.append_file("./map/maps/markers.js",new_line)
             except:
                 failed_ip_country+=1
             target_classement.append(entry["target"])
@@ -78,12 +78,8 @@ def main():
     #     exit()
     #     #go_phishing(phishing_url)
 
-    phish.append_file("./map/maps/markers.js.tmp", "];")
-    try:
-        os.remove("./map/maps/markers.js")
-    except:
-        pass
-    phish.copyfile("./map/maps/markers.js.tmp","./map/maps/markers.js")
+    phish.append_file("./map/maps/markers.jsp", "];")
+    # phish.copyfile("./map/maps/markers.js.tmp","./map/maps/markers.js")
 
 
 if __name__ == "__main__":
