@@ -8,7 +8,8 @@ import gzip
 import shutil
 import psutil
 import time
-
+import os
+from http.server import HTTPServer, CGIHTTPRequestHandler# Make sure the server is created at current directory
 from geoip import geolite2, open_database
 from urllib.parse import urlparse, urljoin, unquote
 
@@ -17,11 +18,21 @@ class bcolors:
     WARNING = '\033[93m'
     ENDC = '\033[0m'
 
+def web_server():
+    os.chdir('./map/')
+    # Create server object listening the port 80
+    server_object = HTTPServer(server_address=('', 8002), RequestHandlerClass=CGIHTTPRequestHandler)
+    # Start the web server
+    server_object.serve_forever()
+
+def copy_file(in,out):
+    shutil.copyfileobj(in, out)
+
 
 def finalization(target_c,failed_ip_country):
     print (Counter(target_classement))
     print("Failed ip resolv:",failed_ip_country)
-    append_file("./map/maps/markers.jsp", "];")
+    append_file("./map/maps/markers.jsp.tmp", "];")
 
 
 
