@@ -68,6 +68,7 @@ def main():
             # if child process > 20 then :
             #     wait this loop pid
     print (Counter(target_classement))
+    print("Failed ip resolv:",failed_ip_country)
     # json = json.loads(open(source_file).read())
     # for entry in json:
     #     url = json['url']
