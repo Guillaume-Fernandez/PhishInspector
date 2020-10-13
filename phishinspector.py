@@ -6,7 +6,6 @@ import custom_functions as phish #Best pratices => one function = only one reuse
 import json
 import time
 import multiprocessing
-from collections import Counter
 from signal import signal, SIGINT
 
 

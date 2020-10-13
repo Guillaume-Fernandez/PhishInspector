@@ -12,6 +12,8 @@ import os
 from http.server import HTTPServer, CGIHTTPRequestHandler# Make sure the server is created at current directory
 from geoip import geolite2, open_database
 from urllib.parse import urlparse, urljoin, unquote
+from collections import Counter
+
 
 class bcolors:
     OKGREEN = '\033[92m'
