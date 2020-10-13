@@ -1,3 +1,5 @@
 ./result/
 ./__pycache__/
 ./verified_online.json
+./online-valid.json
+./online-valid.json.gz
