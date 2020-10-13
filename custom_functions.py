@@ -196,14 +196,14 @@ def use_local_file(f):
   #   urls = inputfile.readlines()
   # return urls
 
-def ip_to_country(ip):
+def ip_to_country(ip,phishtank_id):
     match = geolite2.lookup(ip)
     if match is not None:
         country = str(match.country)
         timezone = str(match.timezone)
         lat = str(match.location[0])
         long = str(match.location[1])
-        new_line = str('{"name":"' + country + '","city":"' + timezone + '","lat":' + lat + ',"lng":' + long + ',},')
+        new_line = str('{"name":"' + country + '","city":"' + timezone + " | PhishTank:" + phishtank_id + '","lat":' + lat + ',"lng":' + long + ',},')
         return new_line
         # append_file("./map/maps/markers.js.tmp",new_line)
     else:

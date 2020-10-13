@@ -36,7 +36,7 @@ def main():
             # print (entry["phish_id"],entry["url"],entry["details"][0]["country"],entry["target"])
             # append_country_map(entry["details"][0]["country"])
             try:
-                new_line=phish.ip_to_country(entry["details"][0]["ip_address"])
+                new_line=phish.ip_to_country(entry["details"][0]["ip_address"],entry["phish_id"])
                 phish.append_file("./map/maps/markers.js.tmp",new_line)
             except:
                 failed_ip_country+=1
@@ -83,7 +83,7 @@ def main():
         os.remove("./map/maps/markers.js")
     except:
         pass
-    copyfile("./map/maps/markers.js.tmp","./map/maps/markers.js")
+    phish.copyfile("./map/maps/markers.js.tmp","./map/maps/markers.js")
 
 
 if __name__ == "__main__":
