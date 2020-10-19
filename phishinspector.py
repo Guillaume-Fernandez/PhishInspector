@@ -56,7 +56,7 @@ def main():
             i+=1
             print("Lines completed: ",i," / ",json_len)
 
-    phish.finalization(Counter(target_classement),failed_ip_country)
+    phish.finalization(target_classement,failed_ip_country)
 
 
 if __name__ == "__main__":
