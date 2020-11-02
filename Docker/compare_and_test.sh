@@ -4,12 +4,12 @@
 
 #Docker dir
 ls -d ./result/* | xargs sha1sum | sort -u -k1,1 | awk '{print $2}' > ./uniq.txt
-
+echo "./result/6796391-1and1.zip" > ./uniq.txt
 docker network create --internal --subnet 10.1.1.0/24 no-internet
 
 init_func(){
   #Init
-  docker run --rm -d -t --net no-internet -p 127.0.0.1:8080:80 --name phis-launcher phis-launcher:latest
+  docker run --rm -d -t -p 8080:80 --name phis-launcher phis-launcher:latest
   #--net no-internet
   docker exec phis-launcher rm /var/www/html/index.html
   docker cp $1 phis-launcher:/tmp/source.zip
@@ -45,8 +45,9 @@ while read i ; do
     # docker exec phis-launcher bash -c "curl 'http://localhost:80'$i --data-raw 'email=toto%40gmail.com&password=totopass&user=toto'" #check -d for post and get ?
     # r=$(diff_func)
     # echo $r
-  done
-  # docker stop phis-launcher
+    done
+  sleep 10800
+  docker stop phis-launcher
   exit 1
 done < ./uniq.txt
 
