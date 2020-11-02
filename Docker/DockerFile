@@ -1,9 +1,0 @@
-FROM ubuntu:18.04
-
-RUN apt-get install -y apache2 unzip
-
-WORKDIR /var/www/html
-
-RUN rm /var/www/html/*
-
-RUN unzip /var/www/html/source.zip
