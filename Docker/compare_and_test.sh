@@ -19,6 +19,37 @@ init_func(){
   docker exec phis-launcher service apache2 start
 }
 
+form_request(){
+  forms=`cat $1 | awk '/<form/{flag=1} flag; /<\/form/{flag=0}' `
+  param=""
+  for form in $forms
+  do
+    if [[ $form == *"name="* ]]
+    then
+      name=`echo $form|awk -F "name=\"" '{print $2}'|awk -F "\"" '{print $1}'`
+      # echo $name
+      param=$param$name"=param&"
+    fi
+    if [[ $form == *"action="* ]]
+    then
+      if [[ $form == *'action="/'* ]] #When action="/..." -> action=...
+      then
+        form=$(echo $form | sed 's|/||')
+      fi
+      url=`echo $form|awk -F "action=\"" '{print $2}'|awk -F "\"" '{print $1}'`
+      # echo $url
+    fi
+    if [[ $form == *"</form"* ]]
+    then
+      request="curl -d \""${param%?}"\" -X POST http://localhost:80/"${url[$i]}
+      echo $request
+      $request
+      param=""
+    fi
+  done
+
+}
+
 diff_func(){
   docker exec phis-launcher diff -r --new-file /tmp/unzip/ /var/www/html/ | grep '>'
   r=$(docker exec phis-launcher bash -c 'diff -r --new-file /var/www/html/ /tmp/unzip/ > /dev/null; echo $?') #With bash -c and $? do not use "", use ''
@@ -35,10 +66,12 @@ diff_func(){
 while read i ; do
   init_func $i
 
-
   web_files=$(docker exec phis-launcher bash -c "find /var/www/html/ -name '*.php*' -o -name '*.html*' -o -name '*.htm*' | sed 's|/var/www/html||g'") # => /dir1/dir2/file.php /dir/dir3/file2.html etc.
   for i in $web_files; do
     echo "http://localhost:8080$i"
+    form_request .$i
+    diff_func
+    
     #Grep every var names insite this file
     #Get action dest.php
     #
