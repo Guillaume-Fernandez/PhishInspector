@@ -20,32 +20,84 @@ class bcolors:
     WARNING = '\033[93m'
     ENDC = '\033[0m'
 
+# Create server object listening the port 80
 def web_server():
     os.chdir('./map/')
-    # Create server object listening the port 80
     server_object = HTTPServer(server_address=('', 8002), RequestHandlerClass=CGIHTTPRequestHandler)
-    # Start the web server
     server_object.serve_forever()
 
+# Copy the contents of the file named file_in to a file named file_out.
 def copy_file(file_in,file_out):
     shutil.copyfile(file_in, file_out)
 
+# Append the string named line at the end of the file named file
+def append_file(file,line):
+map_source = open(file,'a')
+map_source.write(line)
+map_source.close()
 
+# Print the number of element in the list target_c and print the String failed_ip_country and close the markers file
 def finalization(target_c,failed_ip_country):
-    print (Counter(target_classement))
+    print (Counter(target_c))
     print("Failed ip resolv:",failed_ip_country)
     append_file("./map/maps/markers.jsp.tmp", "];")
 
 
-
+# Return the count the number of child process
 def child_process_count(): #Then use if > 20 then .wait() process to
     current_process = psutil.Process()
     children = current_process.children(recursive=True)
     return len(children)
 
+# Append the String phish_url and the String file_format and guess if the file exist, return it if yes and return NULL if not
+def guess_file(phish_url,file_format):
+    guess_url = phish_url + "." + file_format
+    try:
+      g = requests.head(guess_url, allow_redirects=False, timeout=2, stream=True)
+      if not 'content-type' in g.headers:
+        return
+      # if the content-type isn't a file format, ignore
+      if not file_format in g.headers.get('content-type'):
+        return
+      # hopefully we're working with a file format now...
+      print(bcolors.OKGREEN + "[!]  Successful guess! Potential kit found at {}".format(guess_url) + bcolors.ENDC)
+      # download_file(guess_url)
+      return guess_url
+    except requests.exceptions.RequestException:
+      # print("[!]  An error occurred connecting to {}".format(guess_url))
+      return
+
+# Find if the String url got tar/zip/tar.gz files, return the list of the url's files or NULL
+def search_files(url):
+    # print("The URL is : ",url)
+    parts = urlparse(url)
+    if url[-1] == "/" and len(parts.path) > 1:
+        url = url[:-1]
+        # print(url)
+    path_end = parts.path[-1]
+    path_len = len(parts.path)
+    paths = parts.path.split('/')[1:]
+    if path_end == "/" and path_len == 1: # if http://url.com/ => exit function, can't try anything
+        return
+    l = list()
+    for i in range(0, len(paths)):
+        if paths[i] == "":
+            return
+        phish_url = '{}://{}/{}'.format(parts.scheme, parts.netloc,'/'.join(paths[:len(paths) - i]))
+        var = guess_file(phish_url,"zip")
+        if var is not None:
+            l.append(var)
+        var = guess_file(phish_url,"tar.gz")
+        if var is not None:
+            l.append(var)
+        var = guess_file(phish_url,"tar.xz")
+        if var is not None:
+            l.append(var)
+    return l
+
+
 def scan_entry(entry):
     scan = search_files(entry["url"])
-    # print (scan)
     if scan is not None:
         for scan_result in scan:
             download_file(scan_result,"./result/" + entry["phish_id"])
@@ -83,59 +135,10 @@ def check_url(url):
     else:
         return "with_interest"
 
-
-def search_files(url):
-    # print("The URL is : ",url)
-    parts = urlparse(url)
-    if url[-1] == "/" and len(parts.path) > 1:
-        url = url[:-1]
-        # print(url)
-    path_end = parts.path[-1]
-    path_len = len(parts.path)
-    paths = parts.path.split('/')[1:]
-    if path_end == "/" and path_len == 1: # if http://url.com/ => exit function, can't try anything
-        return
-    l = list()
-    for i in range(0, len(paths)):
-        if paths[i] == "":
-            return
-        phish_url = '{}://{}/{}'.format(parts.scheme, parts.netloc,'/'.join(paths[:len(paths) - i]))
-        var = guess_file(phish_url,path_end,path_len,"zip")
-        if var is not None:
-            l.append(var)
-        var = guess_file(phish_url,path_end,path_len,"tar.gz")
-        if var is not None:
-            l.append(var)
-        var = guess_file(phish_url,path_end,path_len,"tar.xz")
-        if var is not None:
-            l.append(var)
-    return l
-
 def download_file(url,path):
     myfile = requests.get(url)
     filename = url.rsplit('/')[-1]
     open(path + "-" +  filename, 'wb').write(myfile.content)
-
-def guess_file(phish_url,path_end,path_len,file_format):
-    guess_url = phish_url + "." + file_format
-
-    try:
-      g = requests.head(guess_url, allow_redirects=False, timeout=2, stream=True)
-      if not 'content-type' in g.headers:
-        return
-
-      # if the content-type isn't a zip, ignore
-      if not file_format in g.headers.get('content-type'):
-        return
-
-      # hopefully we're working with a .zip now...
-      print(bcolors.OKGREEN + "[!]  Successful guess! Potential kit found at {}".format(guess_url) + bcolors.ENDC)
-      # download_file(guess_url)
-      return guess_url
-
-    except requests.exceptions.RequestException:
-      # print("[!]  An error occurred connecting to {}".format(guess_url))
-      return
 
 def ip_to_country(ip,phishtank_id):
     match = geolite2.lookup(ip)
@@ -148,8 +151,3 @@ def ip_to_country(ip,phishtank_id):
         return new_line
     else:
         return -1
-
-def append_file(file,line):
-    map_source = open(file,'a')
-    map_source.write(line)
-    map_source.close()
